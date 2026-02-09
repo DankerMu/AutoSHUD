@@ -72,7 +72,7 @@ readnc.CMFD<-function(ncid, varid=NULL,  ext = NULL){
 
 
 initalGrids <- function(fn, vn, pd.gcs, pd.pcs, sp.ldas=NULL, dxy){
-  buf.g = readOGR(pd.gcs$wbd.buf)
+  buf.g = read_sf_as_sp(pd.gcs$wbd.buf)
   ext = extent(buf.g)
   
   fid = nc_open(fn) 
@@ -100,7 +100,7 @@ initalGrids <- function(fn, vn, pd.gcs, pd.pcs, sp.ldas=NULL, dxy){
     sp0.gcs = spTransform(sp.ldas, xfg$crs.gcs)
     sp0.pcs = spTransform(sp.ldas, xfg$crs.pcs)
   }
-  id=which(gIntersects(sp0.gcs, buf.g, byid = T)) 
+  id=which(sf::st_intersects(sf::st_as_sf(sp0.gcs), sf::st_as_sf(buf.g), sparse = FALSE)[, 1])
   writeshape(sp0.gcs[id, ], file = pd.gcs$meteoCov)
   writeshape(sp0.pcs[id, ], file = pd.pcs$meteoCov)
   sitenames = paste0('X', sp0.gcs@data$xcenter, 'Y', sp0.gcs@data$ycenter)
