@@ -8,8 +8,8 @@
 #'       
 #'       
 #'       
-buf.g = readOGR(pd.gcs$wbd.buf)
-wb.g = readOGR(pd.gcs$wbd)
+buf.g = read_sf_as_sp(pd.gcs$wbd.buf)
+wb.g = read_sf_as_sp(pd.gcs$wbd)
 
 if(xfg$iforcing == 0.3){ res = 0.25 } #GLDAS
 if(xfg$iforcing == 0.4){ res = 0.125 } #NLDAS
@@ -20,13 +20,13 @@ sp.fn =fishnet(xx = seq(ext.fn[1], ext.fn[2], by=res),
                yy = seq(ext.fn[3], ext.fn[4], by=res),
                crs =crs(buf.g), type='polygon')
 
-id=which(gIntersects(sp.fn, buf.g, byid = T))
+id = which(lengths(intersects_sp(sp.fn, buf.g, byid = TRUE)) > 0)
 sp.ldas = sp.fn[id,]
 plot(sp.ldas); plot(add=T, buf.g, border=3); plot(add=T, wb.g, border=2)
 # writeshape(sp.ldas, file=file.path(dir.predata, 'LDAS_GCS'))
 writeshape(sp.ldas, file=pd.gcs$meteoCov)
 
-sp.ldas.pcs = spTransform(sp.ldas, xfg$crs.pcs)
+sp.ldas.pcs = transform_sp(sp.ldas, xfg$crs.pcs)
 writeshape(sp.ldas.pcs, file=pd.pcs$meteoCov)
 # writeshape(sp.ldas.pcs, file=file.path(dir.predata, 'LDAS'))
 

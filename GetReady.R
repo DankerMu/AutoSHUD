@@ -26,6 +26,7 @@ message('Reading project file ', fn.prj)
 
 source('Rfunction/gdalwarp.R')
 source('Rfunction/ReadProject.R')
+source('Rfunction/sf_compat.R')
 xfg <- read.prj(fn.prj = fn.prj)
 
 if( !is.null(xfg$fsp.lake) ){
@@ -74,9 +75,7 @@ pd.att <- list(
 
 
 library(raster)
-library(sp)
-library(rgeos)
-library(rgdal)
+library(sf)
 library(rSHUD)
 library(lattice)
 library(ggplot2)

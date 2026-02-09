@@ -13,12 +13,12 @@ source('GetReady.R')
 # source('Rfunction/fun.LAIRL.R')
 # source('Rfunction/fun.Meteo.R')
 fin <- shud.filein(xfg$prjname, inpath = xfg$dir$modelin, outpath= xfg$dir$modelout)
-wbd=readOGR(pd.pcs$wbd)
+wbd = read_sf_as_sp(pd.pcs$wbd)
 dem=raster(pd.pcs$dem)
-buf.g = readOGR(pd.pcs$wbd.buf)
+buf.g = read_sf_as_sp(pd.pcs$wbd.buf)
 
 # ==============================================
-AA1=gArea(wbd)
+AA1 = area_sp(wbd)
 a.max = min(AA1/xfg$para$NumCells, xfg$para$MaxArea)
 # a.max = max(a.max, AA1/18000); #' MaxNumber should be less than 18000
 
@@ -39,10 +39,10 @@ SS = AA1 / a.max
 
 #' ==============================================
 #' BUFFER
-wb.dis = rgeos::gUnionCascaded(wbd)
-wb.s1 = rgeos::gSimplify(wb.dis, tol=tol.wb, topologyPreserve = T)
+wb.dis = union_sp(wbd)
+wb.s1 = simplify_sp(wb.dis, tol = tol.wb)
 # wb.s2 = sp.simplifyLen(wb.s1, tol.wb)
-wb.s2 = gSimplify(wb.s1, tol = tol.wb)
+wb.s2 = simplify_sp(wb.s1, tol = tol.wb)
 wb.simp = wb.s2
 plot(wb.simp)
 
@@ -86,7 +86,7 @@ nCells = length(spm)
 # plot(sort(ia))
 # stop()
 # ==============================================
-riv0=readOGR(pd.pcs$stm)
+riv0 = read_sf_as_sp(pd.pcs$stm)
 if(xfg$para$flowpath){
   # debug(sp.RiverPath)
   riv1=sp.RiverPath(riv0)$sp  #Build the River Path --- Dissolve the lines.
@@ -96,7 +96,7 @@ if(xfg$para$flowpath){
   riv1 = riv0
   riv2=riv1
 }
-lens=gLength(riv2, byid=TRUE)
+lens = length_sp(riv2, byid = TRUE)
 summary(lens)
 spr = sp.CutSptialLines(sl=riv2, tol=tol.rivlen)
 # writeshape(spr, file=file.path(xfg$dir$predata, 'spr'))
@@ -110,18 +110,19 @@ go.png <- function(){
 # ======FORCING FILE======================
 if( xfg$iforcing < 1 ){
   if( xfg$iforcing < 0 ){
-    sp.forc=readOGR(pd.pcs$wbd.buf)
+    sp.forc = read_sf_as_sp(pd.pcs$wbd.buf)
   }else{
-    sp.forc=readOGR(pd.pcs$meteoCov)
+    sp.forc = read_sf_as_sp(pd.pcs$meteoCov)
   }
   ID = paste0('X', (sp.forc$xcenter),
               'Y', (sp.forc$ycenter))
-  sp.c = SpatialPointsDataFrame(gCentroid(sp.forc, byid = TRUE), data=data.frame('ID' = ID), match.ID = FALSE)
+  sp.c = SpatialPointsDataFrame(centroid_sp(sp.forc, byid = TRUE),
+                                data=data.frame('ID' = ID), match.ID = FALSE)
   sp.forc = ForcingCoverage(sp.meteoSite = sp.c, 
                                    pcs=xfg$crs.pcs, gcs=xfg$crs.gcs, 
                                    dem=dem, wbd=wbd)
 }else{
-  sp.forc = rgdal::readOGR(xfg$fsp.forc)
+  sp.forc = read_sf_as_sp(xfg$fsp.forc)
   sp.forc = rSHUD::ForcingCoverage(sp.meteoSite = sp.forc, 
                                    pcs=xfg$crs.pcs, gcs=xfg$crs.gcs, 
                                    dem=dem, wbd=wbd)
@@ -342,4 +343,3 @@ message('NCell= ', nCells, '\t Area = ', round(AA)/1e6,
 ra=RiverAtt()
 message('Nriv= ', nrow(ra), '\t Length = ', round(sum(ra$Length))/1e3, 'km',
         '\n\t rivLen_mean=', mean(ra$Length)/1e3, 'km')
-

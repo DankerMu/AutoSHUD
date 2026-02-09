@@ -8,7 +8,7 @@ fun.granule <- function(spx, shrink=FALSE){
   
   if(grepl('^SpatialPolygon', class(spx))){
     if(length(spx)>1){
-      spx = rgeos::gUnaryUnion(spx)
+      spx = union_sp(spx)
     }
   }else{  }
   ext0 = extent(spx)
@@ -30,7 +30,7 @@ fun.granule <- function(spx, shrink=FALSE){
     # plot(x.granule);plot(add=T, spx, col=2)
     # xx=raster::crop(x.granule, spx)
     # xx
-    xid = which(rgeos::gIntersects(spx, x.granule, byid=T))
+    xid = sort(unique(unlist(intersects_sp(spx, x.granule, byid = TRUE))))
     rr = x.granule[xid, ]
   }else{
     rr = x.granule
@@ -52,8 +52,8 @@ GDEM_files <- function(fn.bnd,  dir.out, dir.rawdem,
   lapply(list(dir.out, dir.fig), dir.create, recursive = TRUE, showWarnings = FALSE)
   # fn.out = file.path(dir.out, paste0('dl.sh'))
   # =======Load the boundary shapefile========
-  sp.bnd = rgdal::readOGR(fn.bnd)
-  sp.bnd = sp::spTransform(sp.bnd, crs.gcs)
+  sp.bnd = read_sf_as_sp(fn.bnd)
+  sp.bnd = transform_sp(sp.bnd, crs.gcs)
   # ======Generate the granule ================
   png(filename = file.path(dir.fig, paste0('GDEM_grids.png')), height = 7, width = 7, res=300, unit='in')
   xg=fun.granule(sp.bnd, shrink=shrink)
@@ -132,7 +132,7 @@ getDEM_ASTER <- function(fn.wbd,
     # }
   }
   file.copy(from=ret, to=fn.out, overwrite=TRUE)
-  spx = rgdal::readOGR(fn.wbd)
+  spx = read_sf_as_sp(fn.wbd)
   png(filename = fn.fig, height = 7, width = 7, units = 'in', res = 300)
   raster::plot(raster(ret), axes=TRUE); 
   raster::plot(spx, add=TRUE, border='red');  
