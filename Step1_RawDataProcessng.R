@@ -46,13 +46,13 @@ if(!file.exists(xfg$fr.dem)){
                             crop=TRUE)
 }
 
-dem0=raster(xfg$fr.dem)
+dem0=terra::rast(xfg$fr.dem)
 # -------CROP DEM -----------------
 # Crop the dem AND conver the dem to PCS.
-fun.gdalwarp(f1=xfg$fr.dem, f2=pd.pcs$dem, t_srs = xfg$crs.pcs, s_srs = crs(dem0), 
+fun.gdalwarp(f1=xfg$fr.dem, f2=pd.pcs$dem, t_srs = xfg$crs.pcs, s_srs = terra::crs(dem0), 
              opt = paste0('-cutline ', pd.pcs$wbd.buf) )
 # Crop the dem, output is in GCS
-fun.gdalwarp(f1=xfg$fr.dem, f2=pd.gcs$dem, t_srs = xfg$crs.gcs, s_srs = crs(dem0), 
+fun.gdalwarp(f1=xfg$fr.dem, f2=pd.gcs$dem, t_srs = xfg$crs.gcs, s_srs = terra::crs(dem0), 
              opt = paste0('-cutline ', pd.pcs$wbd.buf) )
 
 # =========Stream Network===========================
@@ -62,8 +62,8 @@ fun.simplifyRiver <- function(rmDUP=TRUE){
   riv.xy = extractCoords(stm1)
   npoint = nrow(riv.xy)
   mlen = length_sp(stm1) / npoint
-  r.dem = raster(pd.pcs$dem)
-  dx = mean(res(r.dem))
+  r.dem = terra::rast(pd.pcs$dem)
+  dx = mean(terra::res(r.dem))
   if( mlen < dx){
     stm1 = simplify_sp(stm1, tol = dx)
   }
@@ -97,14 +97,13 @@ if(LAKEON){
 }
 
 #' ==== PLOT FIGURE ================
-dem.p = raster(pd.pcs$dem)
+dem.p = terra::rast(pd.pcs$dem)
 png(filename = file.path(xfg$dir$fig, paste0(prefix, '_Rawdata_Elevation.png')), type='cairo', 
     width = 7, height=7, res=300, unit='in')
-plot(dem.p)
+terra::plot(dem.p)
 plot(wb.p, add=T, border=2)
 if(LAKEON){
   plot(spl.pcs, add=TRUE, border='darkblue', lwd=1.5)
 }
 plot(stm.p, add=T, col=4)
 dev.off()
-

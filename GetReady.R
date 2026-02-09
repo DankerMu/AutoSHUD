@@ -27,6 +27,7 @@ message('Reading project file ', fn.prj)
 source('Rfunction/gdalwarp.R')
 source('Rfunction/ReadProject.R')
 source('Rfunction/sf_compat.R')
+source('Rfunction/terra_compat.R')
 xfg <- read.prj(fn.prj = fn.prj)
 
 if( !is.null(xfg$fsp.lake) ){
@@ -74,7 +75,9 @@ pd.att <- list(
   )
 
 
-library(raster)
+library(terra)
+# Keep raster attached for backward compat and rSHUD expectations.
+if (requireNamespace("raster", quietly = TRUE)) library(raster)
 library(sf)
 # Load sp for backward compat (still needed by non-migrated sub-scripts)
 # Note: rSHUD::getArea() uses rgeos::gArea internally

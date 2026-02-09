@@ -14,7 +14,8 @@ source('GetReady.R')
 # source('Rfunction/fun.Meteo.R')
 fin <- shud.filein(xfg$prjname, inpath = xfg$dir$modelin, outpath= xfg$dir$modelout)
 wbd = read_sf_as_sp(pd.pcs$wbd)
-dem=raster(pd.pcs$dem)
+dem.t=terra::rast(pd.pcs$dem)
+dem=raster::raster(dem.t)
 buf.g = read_sf_as_sp(pd.pcs$wbd.buf)
 
 # ==============================================
@@ -173,11 +174,11 @@ go.png <-function(){
 }; go.png()
 
 # ======LANDUSE======================
-r.lc = raster(pd.pcs$lu.r)
+r.lc = raster::raster(terra::rast(pd.pcs$lu.r))
 if(xfg$ilanduse==0.1){
   rlc.idx = r.lc+1  
 }else{
-  rlc.idx = raster(pd.pcs$lu.idx)  
+  rlc.idx = raster::raster(terra::rast(pd.pcs$lu.idx))  
 }
 
 
@@ -187,8 +188,8 @@ if(xfg$para$QuickMode){
   message('\n !!! QUICK MODE in SOIL/GEOL!!!\n')
   pa=shud.att(tri, r.soil = 1, r.geol = 1, r.lc = rlc.idx, r.forc = 1, r.BC = 0, sp.lake = sp.lake)
 }else{
-  r.soil = raster(pd.pcs$soil.r)
-  r.geol = raster(pd.pcs$geol.r)
+  r.soil = raster::raster(terra::rast(pd.pcs$soil.r))
+  r.geol = raster::raster(terra::rast(pd.pcs$geol.r))
   pa=shud.att(tri, r.soil = r.soil, r.geol = r.geol, r.lc = rlc.idx, r.forc = sp.forc, r.BC = 0, sp.lake = sp.lake)
 }
 fx <- function(x){ x[is.na(x)] = median(x, na.rm = TRUE); return(x) }
@@ -277,8 +278,8 @@ if(xfg$ilanduse == 0.1){
 if(xfg$ilanduse == 0.1){
   lr = LaiRf.GLC(years=(min(years):(max(years))+30) )
 }else{
-  r.lc = raster(pd.pcs$lu.r)
-  rlc.idx = raster(pd.pcs$lu.idx)
+  r.lc = raster::raster(terra::rast(pd.pcs$lu.r))
+  rlc.idx = raster::raster(terra::rast(pd.pcs$lu.idx))
   message('NON GLC landuse. 需要更新代码')
   stop()
 }
