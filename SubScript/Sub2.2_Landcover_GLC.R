@@ -21,8 +21,8 @@ fun.gdalcut(f.in = xfg$fn.landuse,
 
 r.lu = raster(pd.pcs$lu.r)
 
-wb.p = readOGR(pd.pcs$wbd)
-stm.p = readOGR(pd.pcs$stm)
+wb.p = read_sf_as_sp(pd.pcs$wbd)
+stm.p = read_sf_as_sp(pd.pcs$stm)
 
 go.plot <- function(){
   tab = read.df('Table/USGS_GLC.csv', sep='\t')[[1]]
@@ -107,4 +107,3 @@ go.plot <- function(){
 # write.df(vtab, file=file.path(xfg$dir$predata,'LANDUSE.csv') )
 # write.table(vtab, file.path(xfg$dir$predata,'LanduseTable.csv'), quote=F, 
 #             col.names = T, row.names = F)
-
