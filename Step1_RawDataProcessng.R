@@ -15,23 +15,23 @@ rm(list=ls())
 source('GetReady.R')
 prefix ='S1'
 # ================= Boundary =================
-wbd0 = readOGR(xfg$fsp.wbd)  # Read data
-wbd0 = gBuffer(wbd0, width=0) # Remove error from irregular polygon.
+wbd0 = read_sf_as_sp(xfg$fsp.wbd)  # Read data
+wbd0 = buffer_sp(wbd0, dist = 0) # Remove error from irregular polygon.
 # ---- disolve ----
-wbd.dis = removeholes(gUnaryUnion(wbd0))
+wbd.dis = removeholes(union_sp(wbd0))
 
 # wbd in pcs
-wb.p = spTransform(wbd0, xfg$crs.pcs) 
+wb.p = transform_sp(wbd0, xfg$crs.pcs) 
 writeshape(wb.p, pd.pcs$wbd)
 
 # buffer of wbd in pcs
-buf.p = gBuffer(wb.p, width = xfg$para$DistBuffer) 
+buf.p = buffer_sp(wb.p, dist = xfg$para$DistBuffer) 
 writeshape(buf.p, pd.pcs$wbd.buf)
 
-buf.g = spTransform(buf.p, xfg$crs.gcs)
+buf.g = transform_sp(buf.p, xfg$crs.gcs)
 writeshape(buf.g, pd.gcs$wbd.buf)
 
-wb.g=spTransform(wb.p, CRSobj = xfg$crs.gcs )
+wb.g = transform_sp(wb.p, xfg$crs.gcs)
 writeshape(wb.g, pd.gcs$wbd)
 
 
@@ -56,16 +56,16 @@ fun.gdalwarp(f1=xfg$fr.dem, f2=pd.gcs$dem, t_srs = xfg$crs.gcs, s_srs = crs(dem0
              opt = paste0('-cutline ', pd.pcs$wbd.buf) )
 
 # =========Stream Network===========================
-stm0 = readOGR(xfg$fsp.stm)  # data 0: raw data
-stm1 = spTransform(stm0, xfg$crs.pcs)  # data 1: PCS
+stm0 = read_sf_as_sp(xfg$fsp.stm)  # data 0: raw data
+stm1 = transform_sp(stm0, xfg$crs.pcs)  # data 1: PCS
 fun.simplifyRiver <- function(rmDUP=TRUE){
   riv.xy = extractCoords(stm1)
   npoint = nrow(riv.xy)
-  mlen = gLength(stm1) / npoint
+  mlen = length_sp(stm1) / npoint
   r.dem = raster(pd.pcs$dem)
   dx = mean(res(r.dem))
   if( mlen < dx){
-    stm1 = gSimplify(stm1, tol = dx)
+    stm1 = simplify_sp(stm1, tol = dx)
   }
   if(rmDUP){
     res = rmDuplicatedLines(stm1)
@@ -87,12 +87,12 @@ writeshape(stm.p, file=pd.pcs$stm)
 
 #' ==========================================
 if(LAKEON){
-  spl0 = readOGR(xfg$fsp.lake)  # data 0: raw data
+  spl0 = read_sf_as_sp(xfg$fsp.lake)  # data 0: raw data
   spl1 = removeholes(spl0)
-  spl.gcs = spTransform(spl1, CRSobj = xfg$crs.gcs)
+  spl.gcs = transform_sp(spl1, xfg$crs.gcs)
   writeshape(spl.gcs, pd.gcs$lake)
   
-  spl.pcs = spTransform(spl.gcs, CRSobj = xfg$crs.pcs)  # data 1: PCS
+  spl.pcs = transform_sp(spl.gcs, xfg$crs.pcs)  # data 1: PCS
   writeshape(spl.pcs, pd.pcs$lake)
 }
 
@@ -107,5 +107,4 @@ if(LAKEON){
 }
 plot(stm.p, add=T, col=4)
 dev.off()
-
 

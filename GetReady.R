@@ -26,6 +26,7 @@ message('Reading project file ', fn.prj)
 
 source('Rfunction/gdalwarp.R')
 source('Rfunction/ReadProject.R')
+source('Rfunction/sf_compat.R')
 xfg <- read.prj(fn.prj = fn.prj)
 
 if( !is.null(xfg$fsp.lake) ){
@@ -74,9 +75,13 @@ pd.att <- list(
 
 
 library(raster)
-library(sp)
-library(rgeos)
-library(rgdal)
+library(sf)
+# Load sp for backward compat (still needed by non-migrated sub-scripts)
+# Note: rSHUD::getArea() uses rgeos::gArea internally
+# Will be removed when all scripts are fully migrated
+if (requireNamespace("sp", quietly = TRUE)) library(sp)
+if (requireNamespace("rgdal", quietly = TRUE)) library(rgdal)
+if (requireNamespace("rgeos", quietly = TRUE)) library(rgeos)
 library(rSHUD)
 library(lattice)
 library(ggplot2)
