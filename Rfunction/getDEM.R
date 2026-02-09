@@ -11,7 +11,7 @@ fun.granule <- function(spx, shrink=FALSE){
       spx = union_sp(spx)
     }
   }else{  }
-  ext0 = extent(spx)
+  ext0 = as.vector(terra::ext(terra::vect(spx)))
   ext = c(floor(ext0[1]), ceiling(ext0[2]), 
           floor(ext0[3]), ceiling(ext0[4]))
   
@@ -45,7 +45,7 @@ fun.granule <- function(spx, shrink=FALSE){
 #' ================================================================
 GDEM_files <- function(fn.bnd,  dir.out, dir.rawdem,
                        dir.fig = dir.out,
-                       fn.pre = 'ASTGTMV003_', crs.gcs = crs('+init=epsg:4326'), shrink=TRUE){
+                       fn.pre = 'ASTGTMV003_', crs.gcs = terra::crs("EPSG:4326"), shrink=TRUE){
   caller = as.character( deparse(sys.call())   )
   writelog(msg=caller, caller = caller)
   
@@ -107,7 +107,7 @@ getDEM_ASTER <- function(fn.wbd,
     writelog(paste0('Croping DEM ... :', fn.demcrop), caller=caller)
     # writelog(paste0('Writing raster: ', fn.demcrop), caller=caller)
     fun.gdalcut(f.in = fn.dem, f.mask = fn.wbd, f.out = fn.demcrop,
-                s_srs = crs(raster(fn.dem)), t_srs = crs(raster(fn.dem)))
+                s_srs = terra::crs(terra::rast(fn.dem)), t_srs = terra::crs(terra::rast(fn.dem)))
     # r.crop = raster::crop(r, spx)
     # sp.crs = sp::spTransform(spx, crs(r.crop))
     # r.mask = raster::mask(r.crop, sp.crs)
@@ -134,8 +134,8 @@ getDEM_ASTER <- function(fn.wbd,
   file.copy(from=ret, to=fn.out, overwrite=TRUE)
   spx = read_sf_as_sp(fn.wbd)
   png(filename = fn.fig, height = 7, width = 7, units = 'in', res = 300)
-  raster::plot(raster(ret), axes=TRUE); 
-  raster::plot(spx, add=TRUE, border='red');  
+  terra::plot(terra::rast(ret), axes=TRUE); 
+  plot(spx, add=TRUE, border='red');  
   grid()
   dev.off()
   
