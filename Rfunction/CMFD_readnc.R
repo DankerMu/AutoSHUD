@@ -73,7 +73,8 @@ readnc.CMFD<-function(ncid, varid=NULL,  ext = NULL){
 
 initalGrids <- function(fn, vn, pd.gcs, pd.pcs, sp.ldas=NULL, dxy){
   buf.g = read_sf_as_sp(pd.gcs$wbd.buf)
-  ext = extent(buf.g)
+  ext = terra::ext(terra::vect(buf.g))
+  ext = c(ext[1], ext[2], ext[3], ext[4])
   
   fid = nc_open(fn) 
   nc.all = rSHUD::readnc(fid, varid = vn)
@@ -82,28 +83,40 @@ initalGrids <- function(fn, vn, pd.gcs, pd.pcs, sp.ldas=NULL, dxy){
   nc.all$x = round(nc.all$x, 3);   nc.all$y = round(nc.all$y, 3)
   nc.sub$x = round(nc.sub$x, 3);   nc.sub$y = round(nc.sub$y, 3)
   # undebug(xyz2Raster)
-  r = xyz2Raster(x = nc.all, Dxy = dxy)
+  r = xyz2Raster(x = nc.all, Dxy = dxy, plot = FALSE)
   # debug(xyz2Raster)
-  r.sub = xyz2Raster(x = nc.sub, Dxy = dxy)
+  r.sub = xyz2Raster(x = nc.sub, Dxy = dxy, plot = FALSE)
   if(is.null(sp.ldas)){
     sp.ldas = raster2Polygon(rx = r.sub)
     # sp.center = gCentroid(sp.ldas, byid=TRUE)
     
     # =========PLOT===========================
     png.control(fn=paste0(prefix, '_LDAS_location.png'), path = xfg$dir$fig, ratio=1)
-    plot(r * 0, col='gray', legend=FALSE)
-    plot(r.sub * 0, col='red', legend=FALSE, add=TRUE)
-    plot(buf.g, add=T)
-    dev.off()
+    try(plot(r * 0, col='gray', legend=FALSE), silent=TRUE)
+    try(plot(r.sub * 0, col='red', legend=FALSE, add=TRUE), silent=TRUE)
+    try(plot(terra::vect(buf.g), add=TRUE), silent=TRUE)
+    try(dev.off(), silent=TRUE)
     
     # =========Get the data===========================
-    sp0.gcs = spTransform(sp.ldas, xfg$crs.gcs)
-    sp0.pcs = spTransform(sp.ldas, xfg$crs.pcs)
+    if (inherits(sp.ldas, "sf")) {
+      if (is.na(sf::st_crs(sp.ldas))) {
+        sp.ldas = sf::st_set_crs(sp.ldas, sf::st_crs(xfg$crs.gcs))
+      }
+      sp0.gcs = sf::st_transform(sp.ldas, sf::st_crs(xfg$crs.gcs))
+      sp0.pcs = sf::st_transform(sp.ldas, sf::st_crs(xfg$crs.pcs))
+    } else {
+      sp0.gcs = spTransform(sp.ldas, xfg$crs.gcs)
+      sp0.pcs = spTransform(sp.ldas, xfg$crs.pcs)
+    }
   }
   id=which(sf::st_intersects(sf::st_as_sf(sp0.gcs), sf::st_as_sf(buf.g), sparse = FALSE)[, 1])
   writeshape(sp0.gcs[id, ], file = pd.gcs$meteoCov)
   writeshape(sp0.pcs[id, ], file = pd.pcs$meteoCov)
-  sitenames = paste0('X', sp0.gcs@data$xcenter, 'Y', sp0.gcs@data$ycenter)
+  if (inherits(sp0.gcs, "sf")) {
+    sitenames = paste0('X', sp0.gcs$xcenter, 'Y', sp0.gcs$ycenter)
+  } else {
+    sitenames = paste0('X', sp0.gcs@data$xcenter, 'Y', sp0.gcs@data$ycenter)
+  }
   sitenames=sitenames[id]
   
   # plot(sp0.gcs)
