@@ -30,6 +30,12 @@ read_sf_as_sp <- function(dsn, ...) {
     dots$quiet <- TRUE
   }
   x_sf <- do.call(sf::st_read, c(list(dsn = dsn), dots))
+  # Drop empty geometries — sp classes cannot represent them
+  empty <- sf::st_is_empty(x_sf)
+  if (any(empty)) {
+    message("read_sf_as_sp: dropping ", sum(empty), " empty geometries from ", dsn)
+    x_sf <- x_sf[!empty, ]
+  }
   .as_sp_safe(x_sf)
 }
 
