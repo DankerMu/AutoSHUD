@@ -59,9 +59,10 @@ fun.Soil_Geol <- function(fn.r, fn.tab, TOP=TRUE,
   }
   
   write.df(texture, file=fatt)
-  r2 = raster::projectRaster(r1, crs=xfg$crs.pcs)
   raster::writeRaster(r1, filename = fp, overwrite=TRUE)
-  raster::writeRaster(r2, filename = fg, overwrite=TRUE)
+  r1t <- terra::rast(r1)
+  r2t <- terra::project(r1t, "EPSG:4326")
+  terra::writeRaster(r2t, filename = fg, overwrite=TRUE)
   texture[is.na(texture) | is.nan(texture)] = -9999
   message(msg, 'Texture: ')
   print(apply(texture, 2, summary))
